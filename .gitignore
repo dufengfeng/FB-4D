@@ -6,3 +6,4 @@ simple-knn/
 tmp/
 ablation/
 diff-gaussian-rasterization/
+./diff-gaussian-rasterization/*
