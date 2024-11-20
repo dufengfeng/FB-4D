@@ -29,13 +29,3 @@ huggingface_hub
 git+https://github.com/facebookresearch/segment-anything.git
 gradio>=3.50
 fire
-
-
-# CUDA_VISIBLE_DEVICES=3 python scripts/FB_gen.py \
-#     --path ablation/test5-guppie \
-#     --pipeline_path /data15/lijw2402/summercamp/FB-4D/guidance/feature_guidance \
-#     --number 18
-
-CUDA_VISIBLE_DEVICES=6 python main_4D.py \
-    --config configs/FB-4D.yaml path=ablation/NEW_ITER0-guppie save_path=NEW_ITER0-guppie \
-    --camera ablation/NEW_ITER0-guppie/camera.json

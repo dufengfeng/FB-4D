@@ -36,7 +36,7 @@ Additionally, we utilized [STAG4D](https://github.com/zeng-yifei/STAG4D) dataset
 you can run the following command to generate multi-view image sequences for your data:
 
 ```
-CUDA_VISIBLE_DEVICES=3 python scripts/FB_gen.py --path your_path --pipeline_path your_pipeline_path --number 18
+CUDA_VISIBLE_DEVICES=0 python scripts/FB_gen.py --path your_path --pipeline_path your_pipeline_path --number 18
 ```
 
 The parameter `number` specifies the number of iterations and can be adjusted based on your requirements (e.g., `6`, `12`, `18`). 
