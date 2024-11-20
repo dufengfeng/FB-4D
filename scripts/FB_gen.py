@@ -32,7 +32,9 @@ camera =[
     {"elevation": -10, "azimuth": 330}
 ]
 weight_list_ALL = []
+# Load the CLIP model
 model_ID = "/data15/lijw2402/.cache/huggingface/hub/models--openai--clip-vit-base-patch32/snapshots/e6a30b603a447e251fdaca1c3056b2a16cdfebeb/"
+# model_ID = "openai/clip-vit-base-patch32"
 model = CLIPModel.from_pretrained(model_ID)
 preprocess = CLIPImageProcessor.from_pretrained(model_ID)
 
@@ -118,7 +120,6 @@ def add_camera(index):
 
 def clip_contrast(source_dir, view_num):
     clip = []
-    # TODO
     for i in range(0,32):
         # find_the file with the pattern
         image_1 = Image.open(os.path.join(source_dir,"ref/",f'{i:02d}_rgba.png'))
@@ -146,7 +147,6 @@ def clip_contrast(source_dir, view_num):
 
 def clip_contrast_view(source_dir, view_num_1, view_num_2):
     clip = []
-    # TODO
     for i in range(0,32):
         # find_the file with the pattern
         image_1 = Image.open(os.path.join(source_dir,"zero123/",f'{i:02d}_rgba/',f"{view_num_1:02d}.png"))
@@ -245,13 +245,8 @@ def return_idx(source_dir, generation_idx):
             ref_azimuth_list.append(camera[best_view_index]["azimuth"])
             return best_view_index
     
-
-def justify_data(source_dir):
-
-    # for i in range(0,len(all_clip_score)):
-    #     clip_score_ref.append(clip_contrast(source_dir, i))
-    # TODO
-    for i in range(0,24):
+def justify_data(source_dir, number):
+    for i in range(0, number):
         clip_score_ref.append(clip_contrast(source_dir, i))
         
     last_index = []
@@ -365,8 +360,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--path", required=True, help="path to process")
     # DiffusionPipeline.from_pretrained cannot received relative path for custom pipeline
-    parser.add_argument("--pipeline_path", required=True, help="path of pipeline code, in ../guidance/zero123pp")
-    parser.add_argument("--number",required=False, help="number of multi-images to generate", type=int, default=12)
+    parser.add_argument("--pipeline_path", required=True, help="path of pipeline code")
+    parser.add_argument("--number",required=False, help="number of multi-images to generate", type=int, default=18)
     args, extras = parser.parse_known_args()
 
     pipeline = DiffusionPipeline.from_pretrained(
@@ -386,27 +381,19 @@ if __name__ == "__main__":
         create_directory_if_not_exists(directory + 'ref2')
     if(args.number >= 18):
         create_directory_if_not_exists(directory + 'ref3')
-    if(args.number >= 24):
-        create_directory_if_not_exists(directory + 'ref4')
 
 
-    # TODO
     if (args.number >= 6):
 
         image_iter(1, info_strength=1, weight_b1 = 0, weight_b2 = 0, weight_b3 = 0)
         next_id = return_idx(args.path, 0)
-        
         for i in range(0,32):
             filename = f"{i:02d}_rgba"
             copy_and_rename_image(args.path + '/zero123/' + filename, directory + 'ref2', f"{next_id:02d}.png")
     
-
-    # TODO
     if(ref_azimuth_list[-1]!=180):
         if(args.number >= 12):
-            next_id = 5
             add_camera(next_id)
-
             diff_b1 = min(abs(ref_azimuth_list[-1]), 360 - abs(ref_azimuth_list[-1]))
             weight_b1 = (180 - diff_b1) / 360
             weight_b2 = 0
@@ -445,28 +432,9 @@ if __name__ == "__main__":
                 copy_and_rename_image(args.path + '/zero123/' + filename, directory + 'ref4', f"{next_id:02d}.png")
     
 
-    if(ref_azimuth_list[-1]!=180):
-        if(args.number >= 24):
-            add_camera(next_id)
-
-            diff_b1 = min(abs(ref_azimuth_list[-1]), 360 - abs(ref_azimuth_list[-1]))
-            diff_b2 = min(abs(ref_azimuth_list[-1] - ref_azimuth_list[-3]), 360 - abs(ref_azimuth_list[-1] - ref_azimuth_list[-3]))
-            diff_b3 = min(abs(ref_azimuth_list[-1] - ref_azimuth_list[-2]), 360 - abs(ref_azimuth_list[-1] - ref_azimuth_list[-2]))
-
-            weight_b1 = (180 - diff_b1) / 1080
-            weight_b2 = (180 - diff_b2) / 1080
-            weight_b3 = (180 - diff_b3) / 1080
-
-            weight_list_ALL.append(weight_b1)
-            weight_list_ALL.append(weight_b2)
-            weight_list_ALL.append(weight_b3)
-
-            image_iter(4, info_strength=4, weight_b1 = weight_b1, weight_b2 = weight_b2, weight_b3 = weight_b3)
-            # next_id = return_idx(args.path, 3)
-
     print(all_clip_score)
     last_index = []
-    original_data = justify_data(args.path)
+    original_data = justify_data(args.path, args.number)
 
     for item in original_data:
         if item not in last_index:
@@ -483,19 +451,6 @@ if __name__ == "__main__":
     with open(args.path + "/camera.json", 'w') as json_file:
         json.dump(camera_json, json_file, indent=4)
 
-    debug_json = {
-        "ref-list": ref_list,
-        "ref-azimuth":ref_azimuth_list,
-        "clip_score": all_clip_score,
-        "last_index": last_index,
-        "filtered_camera": filtered_camera,
-        "weight_list":weight_list_ALL
-    }
-
-    with open(args.path + "/debug.json", 'w') as json_file:
-        json.dump(debug_json, json_file, indent=4)
-
-    # TODO
     for i in range(0,32):
         filename = f"{i:02d}_rgba"
         dest_files = os.path.join(args.path, "zero123/", filename)

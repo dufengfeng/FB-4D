@@ -42,7 +42,6 @@ OUTPUT_FEATURE = []
 INFO_STRENGTH = 1
 WEIGHT_1 = 0.0
 WEIGHT_2 = 0.0
-WEIGHT_3 = 0.0
 FEATURE_BANK_KEY_SECOND = []
 FEATURE_BANK_VALUE_SECOND = []
 OUTPUT_FEATURE_SECOND = []
@@ -50,10 +49,6 @@ OUTPUT_FEATURE_SECOND = []
 FEATURE_BANK_KEY_THIRD = []
 FEATURE_BANK_VALUE_THIRD = []
 OUTPUT_FEATURE_THIRD = []
-
-FEATURE_BANK_KEY_FOURTH = []
-FEATURE_BANK_VALUE_FOURTH = []
-OUTPUT_FEATURE_FOURTH = []
 
 
 numpy.random.seed(32)
@@ -89,22 +84,16 @@ class MyAttnProcessor2_0:
             global FEATURE_BANK_KEY, FEATURE_BANK_VALUE, OUTPUT_FEATURE
             global FEATURE_BANK_KEY_SECOND, FEATURE_BANK_VALUE_SECOND, OUTPUT_FEATURE_SECOND
             global FEATURE_BANK_KEY_THIRD, FEATURE_BANK_VALUE_THIRD, OUTPUT_FEATURE_THIRD
-            global FEATURE_BANK_KEY_FOURTH, FEATURE_BANK_VALUE_FOURTH, OUTPUT_FEATURE_FOURTH
             if INFO_STRENGTH == 1:
                 new_keys = torch.cat([keys[:,:noise_key_dim,:]] + [FEATURE_BANK_KEY[IDX][:,:noise_key_dim,:].to('cuda')], dim=1)
             elif INFO_STRENGTH == 2:
                 new_keys = torch.cat([keys[:,:noise_key_dim,:]] + [FEATURE_BANK_KEY_SECOND[IDX][:,:noise_key_dim,:].to('cuda')], dim=1)
             elif INFO_STRENGTH == 3:
                 new_keys = torch.cat([keys[:,:noise_key_dim,:]] + [FEATURE_BANK_KEY_THIRD[IDX][:,:noise_key_dim,:].to('cuda')], dim=1)
-            elif INFO_STRENGTH == 4:
-                new_keys = torch.cat([keys[:,:noise_key_dim,:]] + [FEATURE_BANK_KEY_FOURTH[IDX][:,:noise_key_dim,:].to('cuda')], dim=1)
             else: 
-                raise ValueError('INFO_STRENGTH should be 1 or 2 or 3 or 4')
+                raise ValueError('INFO_STRENGTH should be 1 or 2 or 3')
             m_kv, m_kvo = random_bipartite_soft_matching(metric=new_keys, ratio=0.5)
             return m_kv, m_kvo
-    
-    # def cosine_similarity(self, A, B):
-    #     return F.cosine_similarity(A, B, dim=1)
 
     def combine_vectors(self, vectors):
 
@@ -140,7 +129,6 @@ class MyAttnProcessor2_0:
         elif attn.norm_cross:
             encoder_hidden_states = attn.norm_encoder_hidden_states(encoder_hidden_states)
         
-        # present value and present key is all  [2,4096,320]
         key = attn.to_k(encoder_hidden_states)
         value = attn.to_v(encoder_hidden_states)
         initial_key = key.clone()
@@ -153,8 +141,7 @@ class MyAttnProcessor2_0:
             global FEATURE_BANK_KEY, FEATURE_BANK_VALUE, OUTPUT_FEATURE, INFO_STRENGTH
             global FEATURE_BANK_KEY_SECOND, FEATURE_BANK_VALUE_SECOND, OUTPUT_FEATURE_SECOND
             global FEATURE_BANK_KEY_THIRD, FEATURE_BANK_VALUE_THIRD, OUTPUT_FEATURE_THIRD
-            global FEATURE_BANK_KEY_FOURTH, FEATURE_BANK_VALUE_FOURTH, OUTPUT_FEATURE_FOURTH
-            global WEIGHT_1, WEIGHT_2, WEIGHT_3
+            global WEIGHT_1, WEIGHT_2
 
             if FIRST == True:
                 if INFO_STRENGTH == 1:
@@ -166,11 +153,8 @@ class MyAttnProcessor2_0:
                 elif INFO_STRENGTH == 3:
                     FEATURE_BANK_KEY_THIRD.append(key.clone().to('cpu'))
                     FEATURE_BANK_VALUE_THIRD.append(value.clone().to('cpu'))
-                elif INFO_STRENGTH == 4:
-                    FEATURE_BANK_KEY_FOURTH.append(key.clone().to('cpu'))
-                    FEATURE_BANK_VALUE_FOURTH.append(value.clone().to('cpu'))
                 else:
-                    raise ValueError("INFO_STRENGTH must be 1, 2 or 3 or 4")
+                    raise ValueError("INFO_STRENGTH must be 1, 2 or 3")
             else:
                 cached_key_present = key.clone()
                 cached_value_present = value.clone()
@@ -181,41 +165,18 @@ class MyAttnProcessor2_0:
                     key = torch.cat([key] + [temp_key], dim=1)
                     value = torch.cat([value] + [temp_value], dim=1)
                 elif INFO_STRENGTH == 2:
-                    
-                    # all_contents_key = [FEATURE_BANK_KEY[IDX][:,:noise_key_dim,:].to('cuda'), FEATURE_BANK_KEY_SECOND[IDX][:,:noise_key_dim,:].to('cuda')]
-                    # all_contents_val = [FEATURE_BANK_VALUE[IDX][:,:noise_key_dim,:].to('cuda'), FEATURE_BANK_VALUE_SECOND[IDX][:,:noise_key_dim,:].to('cuda')]
-                    # temp_key = self.combine_vectors(all_contents_key)
-                    # temp_value = self.combine_vectors(all_contents_val)
                     temp_key = WEIGHT_1 * FEATURE_BANK_KEY[IDX][:,:noise_key_dim,:].to('cuda') + (1 - WEIGHT_1) * FEATURE_BANK_KEY_SECOND[IDX][:,:noise_key_dim,:].to('cuda')
                     temp_value = WEIGHT_1 * FEATURE_BANK_VALUE[IDX][:,:noise_key_dim,:].to('cuda') + (1 - WEIGHT_1) * FEATURE_BANK_VALUE_SECOND[IDX][:,:noise_key_dim,:].to('cuda')
-                    # ref_temp_key = FEATURE_BANK_KEY[IDX][:,noise_key_dim:,:].to('cuda')
-                    # ref_temp_value = FEATURE_BANK_VALUE[IDX][:,noise_key_dim:,:].to('cuda')
                     key = torch.cat([key] + [temp_key], dim=1)
                     value = torch.cat([value] + [temp_value], dim=1)
 
                 elif INFO_STRENGTH == 3:
-                    # all_contents_key = [FEATURE_BANK_KEY[IDX][:,:noise_key_dim,:].to('cuda'), FEATURE_BANK_KEY_SECOND[IDX][:,:noise_key_dim,:].to('cuda'), FEATURE_BANK_KEY_THIRD[IDX][:,:noise_key_dim,:].to('cuda')]
-                    # all_contents_val = [FEATURE_BANK_VALUE[IDX][:,:noise_key_dim,:].to('cuda'), FEATURE_BANK_VALUE_SECOND[IDX][:,:noise_key_dim,:].to('cuda'), FEATURE_BANK_VALUE_THIRD[IDX][:,:noise_key_dim,:].to('cuda')]
-                    # temp_key = self.combine_vectors(all_contents_key)
-                    # temp_value = self.combine_vectors(all_contents_val)   
                     temp_key = WEIGHT_1 * FEATURE_BANK_KEY[IDX][:,:noise_key_dim,:].to('cuda') + WEIGHT_2 * FEATURE_BANK_KEY_SECOND[IDX][:,:noise_key_dim,:].to('cuda') + (1 - WEIGHT_1 - WEIGHT_2)*FEATURE_BANK_KEY_THIRD[IDX][:,:noise_key_dim,:].to('cuda')
                     temp_value = WEIGHT_1 * FEATURE_BANK_VALUE[IDX][:,:noise_key_dim,:].to('cuda') + WEIGHT_2 * FEATURE_BANK_VALUE_SECOND[IDX][:,:noise_key_dim,:].to('cuda') + (1 - WEIGHT_1 - WEIGHT_2)*FEATURE_BANK_VALUE_THIRD[IDX][:,:noise_key_dim,:].to('cuda')
                     key = torch.cat([key] + [temp_key], dim=1)
                     value = torch.cat([value] + [temp_value], dim=1)
-
-                elif INFO_STRENGTH == 4:
-                    # all_contents_key = [FEATURE_BANK_KEY[IDX][:,:noise_key_dim,:].to('cuda'), FEATURE_BANK_KEY_SECOND[IDX][:,:noise_key_dim,:].to('cuda'), FEATURE_BANK_KEY_THIRD[IDX][:,:noise_key_dim,:].to('cuda'), FEATURE_BANK_KEY_FOURTH[IDX][:,:noise_key_dim,:].to('cuda')]
-                    # all_contents_val = [FEATURE_BANK_VALUE[IDX][:,:noise_key_dim,:].to('cuda'), FEATURE_BANK_VALUE_SECOND[IDX][:,:noise_key_dim,:].to('cuda'), FEATURE_BANK_VALUE_THIRD[IDX][:,:noise_key_dim,:].to('cuda'), FEATURE_BANK_VALUE_FOURTH[IDX][:,:noise_key_dim,:].to('cuda')]
-                    # temp_key = self.combine_vectors(all_contents_key)
-                    # temp_value = self.combine_vectors(all_contents_val)
-                    # ref_temp_key = FEATURE_BANK_KEY[IDX][:,noise_key_dim:,:].to('cuda')
-                    # ref_temp_value = FEATURE_BANK_VALUE[IDX][:,noise_key_dim:,:].to('cuda')
-                    temp_key = WEIGHT_1 * FEATURE_BANK_KEY[IDX][:,:noise_key_dim,:].to('cuda') + WEIGHT_2 * FEATURE_BANK_KEY_SECOND[IDX][:,:noise_key_dim,:].to('cuda') + WEIGHT_3 * FEATURE_BANK_KEY_THIRD[IDX][:,:noise_key_dim,:].to('cuda') + (1 - WEIGHT_1 - WEIGHT_2 - WEIGHT_3) * FEATURE_BANK_KEY_FOURTH[IDX][:,:noise_key_dim,:].to('cuda')
-                    temp_value = WEIGHT_1 * FEATURE_BANK_VALUE[IDX][:,:noise_key_dim,:].to('cuda') + WEIGHT_2 * FEATURE_BANK_VALUE_SECOND[IDX][:,:noise_key_dim,:].to('cuda') + WEIGHT_3 * FEATURE_BANK_VALUE_THIRD[IDX][:,:noise_key_dim,:].to('cuda') + (1 - WEIGHT_1 - WEIGHT_2 - WEIGHT_3) * FEATURE_BANK_VALUE_FOURTH[IDX][:,:noise_key_dim,:].to('cuda')
-                    key = torch.cat([key] + [temp_key], dim=1)
-                    value = torch.cat([value] + [temp_value], dim=1)
                 else:
-                    raise ValueError("INFO_STRENGTH must be 1, 2, or 3 or 4")
+                    raise ValueError("INFO_STRENGTH must be 1, 2, or 3")
 
 
                 m_kv, m_kvo = self._step_new(cached_key_present, cached_value_present, noise_key_dim)
@@ -238,12 +199,6 @@ class MyAttnProcessor2_0:
                     compact_keys, compact_values = m_kv(new_keys, new_values)
                     FEATURE_BANK_KEY_THIRD[IDX][:,:noise_key_dim,:] = compact_keys.to('cpu')
                     FEATURE_BANK_VALUE_THIRD[IDX][:,:noise_key_dim,:] = compact_values.to('cpu')
-                elif INFO_STRENGTH == 4:
-                    new_keys = torch.cat([cached_key_present[:,:noise_key_dim,:]] + [FEATURE_BANK_KEY_FOURTH[IDX][:,:noise_key_dim,:].to('cuda')], dim=1)
-                    new_values = torch.cat([cached_value_present[:,:noise_key_dim,:]] + [FEATURE_BANK_VALUE_FOURTH[IDX][:,:noise_key_dim,:].to('cuda')], dim=1)
-                    compact_keys, compact_values = m_kv(new_keys, new_values)
-                    FEATURE_BANK_KEY_FOURTH[IDX][:,:noise_key_dim,:] = compact_keys.to('cpu')
-                    FEATURE_BANK_VALUE_FOURTH[IDX][:,:noise_key_dim,:] = compact_values.to('cpu')
                 else:
                     raise ValueError("INFO_STRENGTH must be 1, 2, or 3 or 4")
 
@@ -257,8 +212,6 @@ class MyAttnProcessor2_0:
 
 
 
-        # the output of sdp = (batch, num_heads, seq_len, head_dim)
-        # TODO: add support for attn.scale when we move to Torch 2.1
         hidden_states = F.scaled_dot_product_attention(
             query, key, value, attn_mask=attention_mask, dropout_p=0.0, is_causal=False
         )
@@ -276,7 +229,6 @@ class MyAttnProcessor2_0:
 
         hidden_states = hidden_states / attn.rescale_output_factor
 
-        # modify pipeline to add hiddenstates change
 
         if is_self_attention:
             if FIRST == True:
@@ -284,7 +236,6 @@ class MyAttnProcessor2_0:
                 OUTPUT_FEATURE.append(cached_output_states.to('cpu'))
                 OUTPUT_FEATURE_SECOND.append(cached_output_states.to('cpu'))
                 OUTPUT_FEATURE_THIRD.append(cached_output_states.to('cpu'))
-                OUTPUT_FEATURE_FOURTH.append(cached_output_states.to('cpu'))
             else:
                 cached_output_states =  hidden_states.clone()
                 if INFO_STRENGTH == 1:
@@ -308,15 +259,8 @@ class MyAttnProcessor2_0:
                     new_outs = torch.cat([cached_output_states] + [OUTPUT_FEATURE_THIRD[IDX].to('cuda')], dim=1)
                     _, _, compact_outs = m_kvo(new_keys, new_values, new_outs)
                     OUTPUT_FEATURE_THIRD[IDX] = compact_outs.to('cpu')
-                elif INFO_STRENGTH == 4:
-                    nn_hidden_states = get_nn_feats(hidden_states, OUTPUT_FEATURE_FOURTH[IDX].to('cuda'), 0.98)
-                    hidden_states = hidden_states * (1-0.8) + nn_hidden_states * 0.8
-                    # update the feature bank
-                    new_outs = torch.cat([cached_output_states] + [OUTPUT_FEATURE_FOURTH[IDX].to('cuda')], dim=1)
-                    _, _, compact_outs = m_kvo(new_keys, new_values, new_outs)
-                    OUTPUT_FEATURE_FOURTH[IDX] = compact_outs.to('cpu')
                 else:
-                    raise ValueError('INFO_STRENGTH must be 1, 2 or 3 or 4')
+                    raise ValueError('INFO_STRENGTH must be 1, 2 or 3')
 
             IDX = IDX + 1 
         return hidden_states
@@ -337,20 +281,15 @@ class ReferenceOnlyAttnProc(torch.nn.Module):
         self, attn: Attention, hidden_states, encoder_hidden_states=None, attention_mask=None,
         mode="w", ref_dict: dict = None, is_cfg_guidance = False
     ) -> Any:
-        # if is self-attention
         if encoder_hidden_states is None:
             encoder_hidden_states = hidden_states
 
-        # this signal is only used for our pipeline
         is_self_attention = False
 
         if self.enabled:
             if mode == 'w':
                 ref_dict[self.name] = encoder_hidden_states
             elif mode == 'r':
-                # the first part is itself
-                # and the seconde part is the image_cond
-                # namely concat the image condition with itself
                 encoder_hidden_states = torch.cat([encoder_hidden_states, ref_dict.pop(self.name)], dim=1)
                 is_self_attention = True
             elif mode == 'm':
@@ -375,11 +314,9 @@ class RefOnlyNoisedUNet(torch.nn.Module):
                 default_attn_proc = XFormersAttnProcessor()
             else:
                 default_attn_proc = AttnProcessor()
-            # only for the self attention
             unet_lora_attn_procs[name] = ReferenceOnlyAttnProc(
                 default_attn_proc, enabled=name.endswith("attn1.processor"), name=name
             )
-        # replace with own attention blocks
         unet.set_attn_processor(unet_lora_attn_procs)
 
     def __getattr__(self, name: str):
@@ -388,7 +325,6 @@ class RefOnlyNoisedUNet(torch.nn.Module):
         except AttributeError:
             return getattr(self.unet, name)
 
-    # condition_latent process
     def forward_cond(self, noisy_cond_lat, timestep, encoder_hidden_states, class_labels, ref_dict, is_cfg_guidance, **kwargs):
         if is_cfg_guidance:
             encoder_hidden_states = encoder_hidden_states[1:]
@@ -402,8 +338,6 @@ class RefOnlyNoisedUNet(torch.nn.Module):
             **kwargs
         )
 
-    # sample means the noisy picture(namely latent_model_input)
-    # the shape of the sample is [2, 4, 120, 80]
     def forward(
         self, sample, timestep, encoder_hidden_states, class_labels=None,
         *args, cross_attention_kwargs,
@@ -411,7 +345,6 @@ class RefOnlyNoisedUNet(torch.nn.Module):
         **kwargs
     ):
         
-        # cond_lat:[2, 4, 64, 64]
         cond_lat = cross_attention_kwargs['cond_lat']
         is_cfg_guidance = cross_attention_kwargs.get('is_cfg_guidance', False)
         noise = torch.randn_like(cond_lat)
@@ -422,12 +355,7 @@ class RefOnlyNoisedUNet(torch.nn.Module):
         else:
             noisy_cond_lat = self.val_sched.add_noise(cond_lat, noise, timestep.reshape(-1))
             noisy_cond_lat = self.val_sched.scale_model_input(noisy_cond_lat, timestep.reshape(-1))
-            #if cross_attention_kwargs['cond_lat_back'] is not None:
-            #    cond_lat_back = cross_attention_kwargs['cond_lat_back']
-            #    noisy_cond_lat_back = self.val_sched.add_noise(cond_lat_back, noise, timestep.reshape(-1))
-            #    noisy_cond_lat_back = self.val_sched.scale_model_input(noisy_cond_lat_back, timestep.reshape(-1))
-        
-        # encoder_hidden_states = torch.Size([2, 77, 1024]) 
+
         ref_dict = {}
         self.forward_cond(
             noisy_cond_lat, timestep,
@@ -435,7 +363,6 @@ class RefOnlyNoisedUNet(torch.nn.Module):
             ref_dict, is_cfg_guidance, **kwargs
         )
 
-        # the cross_attention_kwargs is directly passed to the attention blocks
         weight_dtype = self.unet.dtype
         return self.unet(
             sample, timestep,
@@ -549,23 +476,20 @@ class Zero123PlusPipeline(diffusers.StableDiffusionPipeline):
         weight_b3 = 0.0,
         **kwargs
     ):
-        # begin tricks to use first frame in cross-attention
         global FIRST
         FIRST = is_first
         global IDX
         IDX = 0
         global INFO_STRENGTH
         INFO_STRENGTH = info_strength
-        global WEIGHT_1, WEIGHT_2, WEIGHT_3
+        global WEIGHT_1, WEIGHT_2
         WEIGHT_1 = weight_b1
         WEIGHT_2 = weight_b2
-        WEIGHT_3 = weight_b3
         
         if is_first:
             global FEATURE_BANK_KEY,FEATURE_BANK_VALUE,OUTPUT_FEATURE
             global FEATURE_BANK_KEY_SECOND,FEATURE_BANK_VALUE_SECOND,OUTPUT_FEATURE_SECOND
             global FEATURE_BANK_KEY_THIRD,FEATURE_BANK_VALUE_THIRD,OUTPUT_FEATURE_THIRD
-            global FEATURE_BANK_KEY_FOURTH,FEATURE_BANK_VALUE_FOURTH,OUTPUT_FEATURE_FOURTH
             if info_strength == 1:
                 FEATURE_BANK_VALUE=[]
                 FEATURE_BANK_KEY=[]
@@ -578,15 +502,10 @@ class Zero123PlusPipeline(diffusers.StableDiffusionPipeline):
                 FEATURE_BANK_KEY_THIRD=[]
                 FEATURE_BANK_VALUE_THIRD=[]
                 OUTPUT_FEATURE_THIRD=[]
-            elif info_strength == 4:
-                FEATURE_BANK_KEY_FOURTH=[]
-                FEATURE_BANK_VALUE_FOURTH=[]
-                OUTPUT_FEATURE_FOURTH=[]
             else:
                 raise ValueError("info strength must be 1, 2 or 3")
 
         
-        # Create a generator with the specified seed
         generator = torch.Generator(device='cuda')
         generator.manual_seed(42)
         self.prepare()
@@ -597,7 +516,7 @@ class Zero123PlusPipeline(diffusers.StableDiffusionPipeline):
         image = to_rgb_image(image)
         image_1 = self.feature_extractor_vae(images=image, return_tensors="pt").pixel_values
         image_2 = self.feature_extractor_clip(images=image, return_tensors="pt").pixel_values
-        # this case is not used
+
         if depth_image is not None and hasattr(self.unet, "controlnet"):
             depth_image = to_rgb_image(depth_image)
             depth_image = self.depth_transforms_multi(depth_image).to(
@@ -608,17 +527,14 @@ class Zero123PlusPipeline(diffusers.StableDiffusionPipeline):
         image_2 = image_2.to(device=self.vae.device, dtype=self.vae.dtype)
         cond_lat = self.encode_condition_image(image)
 
-        # use classifier-free concat
         if guidance_scale > 1:
             negative_lat = self.encode_condition_image(torch.zeros_like(image))
             cond_lat = torch.cat([negative_lat, cond_lat])
         
-        # this frame embedding
         encoded = self.vision_encoder(image_2, output_hidden_states=False)
         global_embeds = encoded.image_embeds
         global_embeds = global_embeds.unsqueeze(-2)
         
-        # unconditioned prompt in word embeddings
         encoder_hidden_states = self._encode_prompt(
             prompt,
             self.device,
@@ -626,14 +542,11 @@ class Zero123PlusPipeline(diffusers.StableDiffusionPipeline):
             False
         )
 
-        # concat image embeddings with word embeddings
         ramp = global_embeds.new_tensor(self.config.ramping_coefficients).unsqueeze(-1)
         encoder_hidden_states = encoder_hidden_states + global_embeds * ramp
         cak = dict(cond_lat=cond_lat)
         
         cak['cond_lat_back'] = None
-        # encoder_hidden_state : torch.Size([1, 77, 1024])
-        # cond_lat : [2, 4, 64, 64]
         latents: torch.Tensor = super().__call__(
             None,
             *args,
