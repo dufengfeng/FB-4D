@@ -35,7 +35,6 @@ from diffusers.utils.import_utils import is_xformers_available
 import os
 FIRST = True
 IDX = 0
-PATH = '/home/vision/github/embeddings/'
 FEATURE_BANK_KEY = []
 FEATURE_BANK_VALUE = []
 OUTPUT_FEATURE = []

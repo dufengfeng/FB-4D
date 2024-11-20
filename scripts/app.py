@@ -50,12 +50,6 @@ class SAMAPI:
 
         """
         np = numpy
-        # print(sam_checkpoint)
-        # print(sam_checkpoint)
-        # print(sam_checkpoint)
-        # print(sam_checkpoint)
-        # print(sam_checkpoint)
-        # print(sam_checkpoint)
         predictor = SAMAPI.get_instance(sam_checkpoint)
         predictor.set_image(rgb)
         if mask is None and bbox is None:

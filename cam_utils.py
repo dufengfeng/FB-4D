@@ -43,10 +43,6 @@ def look_at(campos, target, opengl=True):
 
 # elevation & azimuth to pose (cam2world) matrix
 def orbit_camera(elevation, azimuth, radius=1, is_degree=True, target=None, opengl=True):
-    # radius: scalar
-    # elevation: scalar, in (-90, 90), from +y to -y is (-90, 90)
-    # azimuth: scalar, in (-180, 180), from +z to +x is (0, 90)
-    # return: [4, 4], camera pose matrix
     if is_degree:
         elevation = np.deg2rad(np.array(elevation))
         azimuth = np.deg2rad(np.array(azimuth))

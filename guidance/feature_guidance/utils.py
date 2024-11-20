@@ -27,12 +27,6 @@ def get_nn_feats(x, y, threshold=0.98):
 def random_bipartite_soft_matching(
     metric: torch.Tensor, use_grid: bool = False, ratio: float = 0.5
 ) -> Tuple[Callable, Callable]:
-    """
-    Applies ToMe with the two sets as (r chosen randomly, the rest).
-    Input size is [batch, tokens, channels].
-
-    This will reduce the number of tokens by a ratio of ratio/2.
-    """
     with torch.no_grad():
         B, N, _ = metric.shape
         rand_idx = torch.rand(B, N, 1, device=metric.device).argsort(dim=1)

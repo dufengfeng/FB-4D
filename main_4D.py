@@ -91,12 +91,6 @@ class GUI:
         self.dataloader =self.dataset.dataloader()
         self.iter = iter(self.dataloader)
         
-        # with ref_view_batch shape [batch_size, H, W, 3]
-        # with input_mask_batch shape [batch_size, H, W, 1]
-        # with zero123_view_batch shape [batch_size, 6, H, W, 1]
-        # with zero123_masks_batch shape [batch_size, 6, H, W, 1]
-        # self.ref_view_batch list length 30
-        # self.zero123_view_batch list length 30 length 6
         self.ref_view_batch, self.input_mask_batch,self.zero123_view_batch,self.zero123_masks_batch = next(self.iter)
         self.input_img_torch_batch,self.input_mask_torch_batch,self.zero123plus_imgs_torch_batch,self.zero123plus_masks_torch_batch=[],[],[],[]
 
@@ -250,8 +244,6 @@ class GUI:
                 self.renderer.gaussians.save_ply(ply_path)
                 self.renderer.gaussians.save_deformation(auto_path)
                 
-            # self.opt.position_lr_max_steps is 2000
-            # self.opt.position_lr_max_steps2 is 5000
             if self.step>self.opt.position_lr_max_steps:
                 self.opt.position_lr_max_steps = self.opt.position_lr_max_steps2
 
@@ -343,8 +335,6 @@ class GUI:
                     self.cam.far,
                 )
                 cur_cam.time=self.time
-                # the vers is similar with elevation while the hors is similar with azimuth
-                # the process shows the difference between the random rendered and our zero123 outputs
                 if hor<30 and hor>-30 or np.random.rand()>0.4:
                     idx=None
                     vers_plus.append(torch.tensor(ver,device=self.device).unsqueeze(dim=0))
@@ -365,7 +355,6 @@ class GUI:
                     vers_plus.append(torch.tensor(ver-self.fixed_elevation[idx],device=self.device).unsqueeze(dim=0))
                     hors_plus.append(torch.tensor(hor-self.fixed_azimuth[idx],device=self.device).unsqueeze(dim=0))
                     radii_plus.append(torch.tensor(radius,device=self.device).unsqueeze(dim=0))
-                # TODO whether we can check the bg_color influence the result
                 bg_color = torch.tensor([1, 1, 1] if np.random.rand() > self.opt.invert_bg_prob else [0, 0, 0], dtype=torch.float32, device="cuda")
                 out = self.renderer.render(cur_cam, bg_color=bg_color,stage=self.stage)
                 viewspace_point_tensor, visibility_filter, radii_rendering = out["viewspace_points"], out["visibility_filter"], out["radii"]  
@@ -382,7 +371,6 @@ class GUI:
                 hors_batch = torch.cat(hors_plus, dim=0).cpu().numpy()
                 radii_batch = torch.cat(radii_plus, dim=0).cpu().numpy()
                 # guidance loss
-                # as we have different reference views, so each time we only pass 1 image into zero123 for guidance
                 zero123_loss = self.opt.lambda_zero123 * self.guidance_zero123.train_step(images_render, vers_batch, hors_batch, radii_batch, step_ratio,idx=idx,t = self.t)
                 loss = loss + zero123_loss
             
@@ -408,7 +396,6 @@ class GUI:
                     viewspace_point_tensor_grad = viewspace_point_tensor_grad + viewspace_point_tensor_list[idx].grad
             radii = torch.cat(radii_list,0).max(dim=0).values
             visibility_filter = torch.cat(visibility_filter_list).any(dim=0)
-            # TODO whether change the gaussian density end will improve or not and whether change densify_grad_threshold_percent will improve or not
             if self.step >= self.opt.density_start_iter and self.step <= self.opt.density_end_iter:
                 self.renderer.gaussians.max_radii2D[visibility_filter] = torch.max(self.renderer.gaussians.max_radii2D[visibility_filter], radii[visibility_filter])
                 self.renderer.gaussians.add_densification_stats(viewspace_point_tensor_grad, visibility_filter)
@@ -770,11 +757,6 @@ class GUI:
                             self.training = True
                             dpg.configure_item("_button_train", label="stop")
 
-                    # dpg.add_button(
-                    #     label="init", tag="_button_init", callback=self.prepare_train
-                    # )
-                    # dpg.bind_item_theme("_button_init", theme_button)
-
                     dpg.add_button(
                         label="start", tag="_button_train", callback=callback_train
                     )
@@ -824,8 +806,6 @@ class GUI:
                     default_value=self.gaussain_scale_factor,
                     callback=callback_set_gaussain_scale,
                 )
-
-        ### register camera handler
 
         def callback_camera_drag_rotate_or_draw_mask(sender, app_data):
             if not dpg.is_item_focused("_primary_window"):
@@ -899,13 +879,6 @@ class GUI:
 
         dpg.setup_dearpygui()
 
-        ### register a larger font
-        # get it from: https://github.com/lxgw/LxgwWenKai/releases/download/v1.300/LXGWWenKai-Regular.ttf
-        if os.path.exists("LXGWWenKai-Regular.ttf"):
-            with dpg.font_registry():
-                with dpg.font("LXGWWenKai-Regular.ttf", 18) as default_font:
-                    dpg.bind_font(default_font)
-
         # dpg.show_metrics()
 
         dpg.show_viewport()
@@ -925,8 +898,6 @@ class GUI:
             self.prepare_train()
             for i in tqdm.trange(iters):
                 self.train_step()
-            # do a last prune
-            #self.renderer.gaussians.prune(min_opacity=0.01, extent=1, max_screen_size=1)
             
 
             

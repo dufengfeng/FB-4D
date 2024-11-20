@@ -820,15 +820,6 @@ class GUI:
 
         dpg.setup_dearpygui()
 
-        ### register a larger font
-        # get it from: https://github.com/lxgw/LxgwWenKai/releases/download/v1.300/LXGWWenKai-Regular.ttf
-        if os.path.exists("LXGWWenKai-Regular.ttf"):
-            with dpg.font_registry():
-                with dpg.font("LXGWWenKai-Regular.ttf", 18) as default_font:
-                    dpg.bind_font(default_font)
-
-        # dpg.show_metrics()
-
         dpg.show_viewport()
 
     def render(self):

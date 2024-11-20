@@ -9,7 +9,7 @@ pip install ./simple-knn
 ```
 # Dataset Preparing
 
-***Test dataset*** can be downloaded from [here](https://cloud.tsinghua.edu.cn/d/9b6bad311f7d42a387f8/).(Our final results are also included)
+***Test dataset*** can be downloaded from here.(Our final results are also included)
 The file should be organized as follows:
 ```
 ├── dataset
@@ -27,7 +27,7 @@ The file should be organized as follows:
 ```
 If you'd like to generate more 4D objects, you can organize your data in the same format as above. 
 
-Additionally, we utilized [STAG4D](https://github.com/zeng-yifei/STAG4D) dataset to process more objects. You can download the dataset and reorganize the data as above to generate more 4D objects.
+Additionally, we utilized STAG4D dataset to process more objects. You can download the dataset and reorganize the data as above to generate more 4D objects.
 
 # Pipeline
 
@@ -59,7 +59,7 @@ To avoid environment conflicts, we recommend running the evaluation code in a ne
 ```
 pip install -r requirements_eval.txt
 ```
-We use the [Consistent4D](https://github.com/yanqinJiang/Consistent4D) to do evaluation. To evaluate, first transform rgba gt images to images with white background. Download the pre-trained model (i3d_pretrained_400.pt) for calculating FVD [here](https://drive.google.com/file/d/1J8w3fGj6H6kmcW9G8Ff6tRQofblaG5Vn/view) (This link is borrowed from DisCo, and the file for calculating FVD is a refractoring of their evaluation code. Thanks for their work!). Organize the reuslt folder as follows:
+We use the Consistent4D to do evaluation. To evaluate, first transform rgba gt images to images with white background. Download the pre-trained model (i3d_pretrained_400.pt) for calculating FVD here. Organize the reuslt folder as follows:
 ```
 ├── eval_dataset
       | gt
