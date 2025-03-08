@@ -236,7 +236,7 @@ class GUI:
             )
             # video_path = f'./valid/{self.opt.save_path}/video_{name}.mp4'
             # imageio.mimwrite(video_path, vid)
-            gif_path = f'/data15/lijw2402/summercamp/supp/{NAME_EXP}/video_{name}.gif'
+            gif_path = f'yourpath.gif'
             imageio.mimsave(gif_path, vid, format='GIF', fps=10)
         else:
             images=[]
@@ -268,7 +268,7 @@ class GUI:
             )
             # video_path = f'./valid/{self.opt.save_path}/video_{name}.mp4'
             # imageio.mimwrite(video_path, vid)
-            gif_path = f'/data15/lijw2402/summercamp/supp/{NAME_EXP}/video_{name}.gif'
+            gif_path = f'yourpath.gif'
             imageio.mimsave(gif_path, vid, format='GIF', fps=10)
             
         
