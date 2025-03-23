@@ -9,7 +9,7 @@ pip install ./simple-knn
 ```
 # Dataset Preparing
 
-***Test dataset*** can be downloaded from [here](https://cloud.tsinghua.edu.cn/d/9b6bad311f7d42a387f8/).(Our final results are also included)
+***Test dataset*** can be downloaded from [here](https://drive.google.com/drive/folders/1SbnH0FSkj09WVvnMWpByamFxSyksNkoo).(Our final results are also included)
 The file should be organized as follows:
 ```
 ├── dataset
