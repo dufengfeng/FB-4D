@@ -234,9 +234,8 @@ class GUI:
                 .numpy()
                 .astype(np.uint8)
             )
-            # video_path = f'./valid/{self.opt.save_path}/video_{name}.mp4'
-            # imageio.mimwrite(video_path, vid)
-            gif_path = f'/data15/lijw2402/summercamp/supp/{NAME_EXP}/video_{name}.gif'
+            # add your own path
+            gif_path = ""
             imageio.mimsave(gif_path, vid, format='GIF', fps=10)
         else:
             images=[]
@@ -266,9 +265,8 @@ class GUI:
                 .numpy()
                 .astype(np.uint8)
             )
-            # video_path = f'./valid/{self.opt.save_path}/video_{name}.mp4'
-            # imageio.mimwrite(video_path, vid)
-            gif_path = f'/data15/lijw2402/summercamp/supp/{NAME_EXP}/video_{name}.gif'
+            # add your own path
+            gif_path = ""
             imageio.mimsave(gif_path, vid, format='GIF', fps=10)
             
         

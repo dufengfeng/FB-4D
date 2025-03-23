@@ -33,8 +33,7 @@ camera =[
 ]
 weight_list_ALL = []
 # Load the CLIP model
-model_ID = "/data15/lijw2402/.cache/huggingface/hub/models--openai--clip-vit-base-patch32/snapshots/e6a30b603a447e251fdaca1c3056b2a16cdfebeb/"
-# model_ID = "openai/clip-vit-base-patch32"
+model_ID = "openai/clip-vit-base-patch32"
 model = CLIPModel.from_pretrained(model_ID)
 preprocess = CLIPImageProcessor.from_pretrained(model_ID)
 
