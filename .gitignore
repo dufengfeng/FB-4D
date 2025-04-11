@@ -1,7 +1,6 @@
 *.pyc
 ./valid/*
 logs/
-configs/
 simple-knn/
 tmp/
 ablation/
